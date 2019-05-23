@@ -1,7 +1,7 @@
 data "terraform_remote_state" "dns" {
   backend = "s3"
 
-  config {
+  config = {
     bucket = "terraform.grimoire"
     key    = "dns.tfstate"
     region = "ca-central-1"
@@ -9,17 +9,18 @@ data "terraform_remote_state" "dns" {
 }
 
 resource "aws_route53_record" "discourse_ip4" {
-  zone_id = "${data.terraform_remote_state.dns.lithobrake_club_zone_id}"
+  zone_id = data.terraform_remote_state.dns.outputs.lithobrake_club_zone_id
   name    = "talk"
   type    = "A"
   ttl     = "15"
-  records = ["${aws_instance.discourse.public_ip}"]
+  records = [aws_instance.discourse.public_ip]
 }
 
 resource "aws_route53_record" "discourse_ip6" {
-  zone_id = "${data.terraform_remote_state.dns.lithobrake_club_zone_id}"
+  zone_id = data.terraform_remote_state.dns.outputs.lithobrake_club_zone_id
   name    = "talk"
   type    = "AAAA"
   ttl     = "15"
-  records = ["${aws_instance.discourse.ipv6_addresses}"]
+  records = aws_instance.discourse.ipv6_addresses
 }
+

@@ -1,13 +1,30 @@
 locals {
-  user_data_tpl = "${file("${path.module}/templates/user_data")}"
+  user_data_tpl = file("${path.module}/templates/user_data")
+
+  install_discourse_tpl = file("${path.module}/templates/install-discourse")
+}
+
+variable "mailgun_smtp_password" {
+  type = "string"
+}
+
+data "template_file" "install_discourse" {
+  # Render the template once for each instance
+  template = local.install_discourse_tpl
+
+  vars = {
+    hostname = "talk.lithobrake.club"
+    mailgun_smtp_password = var.mailgun_smtp_password
+  }
 }
 
 data "template_file" "user_data" {
   # Render the template once for each instance
-  template = "${local.user_data_tpl}"
+  template = local.user_data_tpl
 
-  vars {
-    hostname = "discourse"
+  vars = {
+    hostname = "talk.lithobrake.club"
+    install_discourse = base64encode(data.template_file.install_discourse.rendered)
   }
 }
 
@@ -23,26 +40,27 @@ resource "aws_instance" "discourse" {
     prevent_destroy = true
   }
 
-  ami           = "${data.aws_ami.ubuntu.id}"
+  ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.small"
 
-  vpc_security_group_ids = ["${aws_security_group.discourse.id}"]
+  vpc_security_group_ids = [aws_security_group.discourse.id]
 
-  key_name = "${aws_key_pair.discourse.key_name}"
+  key_name = aws_key_pair.discourse.key_name
 
-  subnet_id = "${data.terraform_remote_state.network.subnet_id}"
+  subnet_id = data.terraform_remote_state.network.outputs.subnet_id
 
-  user_data = "${data.template_file.user_data.rendered}"
+  user_data = data.template_file.user_data.rendered
 
   root_block_device {
     volume_size = 15
   }
 
-  tags {
+  tags = {
     Project = "discourse.tf"
   }
 }
 
 output "instance_ip" {
-  value = "${aws_instance.discourse.public_ip}"
+  value = aws_instance.discourse.public_ip
 }
+

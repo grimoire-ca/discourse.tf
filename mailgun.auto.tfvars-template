@@ -1,0 +1,3 @@
+# Copy me to mailgun.auto.tfvars and fill in the values below.
+
+mailgun_smtp_password = "REAL PASSWORD HERE"

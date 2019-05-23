@@ -6,5 +6,15 @@ package_update: true
 package_upgrade: true
 package_reboot_if_required: true
 
+write_files:
+  - content: ${install_discourse}
+    encoding: b64
+    path: /usr/local/sbin/install-discourse
+    owner: root:root
+    permissions: '0755'
+
 packages:
   - docker.io
+
+runcmd:
+  - install-discourse

@@ -1,30 +1,30 @@
 resource "aws_iam_user" "discourse" {
   name = "discourse"
 
-  tags {
+  tags = {
     Project = "discourse.tf"
   }
 }
 
 resource "aws_iam_access_key" "discourse" {
-  user = "${aws_iam_user.discourse.name}"
+  user = aws_iam_user.discourse.name
 }
 
 resource "aws_s3_bucket" "attachments" {
   bucket = "lithobrake-club-attachments"
 
-  provider = "aws.s3"
+  provider = aws.s3
 }
 
 resource "aws_s3_bucket" "backups" {
   bucket = "lithobrake-club-backups"
 
-  provider = "aws.s3"
+  provider = aws.s3
 }
 
 resource "aws_iam_user_policy" "discourse_s3" {
   name = "discourse-s3"
-  user = "${aws_iam_user.discourse.name}"
+  user = aws_iam_user.discourse.name
 
   policy = <<POLICY
 {
@@ -62,12 +62,14 @@ resource "aws_iam_user_policy" "discourse_s3" {
   ]
 }
 POLICY
+
 }
 
 output "access_key_id" {
-  value = "${aws_iam_access_key.discourse.id}"
+  value = aws_iam_access_key.discourse.id
 }
 
 output "secret_access_key" {
-  value = "${aws_iam_access_key.discourse.secret}"
+  value = aws_iam_access_key.discourse.secret
 }
+
